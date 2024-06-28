@@ -1,0 +1,55 @@
+# Ignore Maven target directory
+/target/
+
+# Ignore temporary files
+*.tmp
+*.log
+*.bak
+*.swp
+
+# Ignore IDE-specific files
+# IntelliJ IDEA
+/.idea/
+/*.iml
+/out/
+
+# Eclipse
+/.classpath
+/.project
+/.settings/
+
+# Windows-specific files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# macOS-specific files
+.DS_Store
+
+# MuleSoft deployment files
+*.dwl
+*.dwl.cache
+*.mule
+mule-artifact.properties
+
+# Anypoint Studio specific files
+*.metadata
+*.project
+*.prefs
+*.classpath
+bin/
+
+# Ignore build tool files
+*.bak
+*.orig
+*.rej
+
+# Ignore Anypoint Studio's workspace files
+**/studio.project
+**/studio.preferences
+
+# Ignore any other unnecessary files
+*.bak
+*.orig
+*.rej
+*.tmp
