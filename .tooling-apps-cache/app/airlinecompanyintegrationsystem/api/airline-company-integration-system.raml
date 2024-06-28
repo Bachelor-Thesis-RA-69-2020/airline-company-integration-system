@@ -1,0 +1,43 @@
+#%RAML 1.0
+title: Flight API
+version: v1
+baseUri: http://localhost:8080/api
+
+/flights:
+  get:
+    description: Get a list of flights based on search criteria
+    queryParameters:
+      from:
+        description: Start datetime of the flight
+        type: datetime
+        required: true
+      to:
+        description: End datetime of the flight
+        type: datetime
+        required: true
+      fromAirportIATA:
+        description: IATA code of the departure airport
+        type: string
+        required: true
+        pattern: ^[a-zA-Z]{3}$
+      toAirportIATA:
+        description: IATA code of the arrival airport
+        type: string
+        required: true
+        pattern: ^[a-zA-Z]{3}$
+      flightClass:
+        description: Class of the flight (e.g., Economy, Business, First)
+        type: string
+        required: true
+        enum: [Economy, Business, First]
+      adultPassengerCount:
+        description: Number of adult passengers
+        type: integer
+        required: true
+      childPassengerCount:
+        description: Number of child passengers
+        type: integer
+        required: false
+    responses:
+      200:
+      400:
