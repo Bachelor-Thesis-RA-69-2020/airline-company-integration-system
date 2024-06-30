@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "FlightDetailsList",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "flightNumber": {
+          "type": "string",
+          "description": "The unique identifier for the flight."
+        },
+        "fromAirport": {
+          "type": "string",
+          "description": "The name or code of the departure airport."
+        },
+        "toAirport": {
+          "type": "string",
+          "description": "The name or code of the arrival airport."
+        },
+        "departureTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time when the flight departs."
+        },
+        "arrivalTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time when the flight arrives."
+        },
+        "duration": {
+          "type": "integer",
+          "description": "The duration of the flight in minutes."
+        },
+        "baggageRules": {
+          "type": "string",
+          "description": "Rules and restrictions for baggage on the flight."
+        },
+        "price": {
+          "type": "number",
+          "description": "The calculated price for the flight."
+        }
+      },
+      "required": ["flightNumber", "fromAirport", "toAirport", "departureTimestamp", "arrivalTimestamp", "duration", "baggageRules", "price"]
+    }
+  }
+  

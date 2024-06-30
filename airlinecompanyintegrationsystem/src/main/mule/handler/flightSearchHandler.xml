@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="flightSearchHandlerFlow" doc:id="c7dea089-fb8f-4f24-b87d-4ad5f7ff9a6a" >
+		<set-payload value="#[message.attributes.queryParams]" doc:name="Set search filter" doc:id="f98cf1d7-4870-4728-aafc-5f0a57b3d176" />
+		<set-variable value="#[payload]" doc:name="Set serach filter" doc:id="54dd6376-e968-4802-afd6-8344de4305d9" variableName="searchFilter"/>
+		<scatter-gather doc:name="Search flights" doc:id="8a0e7623-3e4c-440f-a7ac-b47f1b694eea">
+			<route >
+				<flow-ref doc:name="Search Airline Company 1" doc:id="3359cf36-cdac-4f6b-9e50-f64f69e0e4ed" name="airlineCompany1FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="0add1619-d03a-4587-a196-0ec14d31adb4" />
+				<flow-ref doc:name="Convert flight format" doc:id="99300cdf-856e-4c2c-9645-c3d515701848" name="airlineCompany1FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company 2" doc:id="951edbd1-7be1-4bbe-8702-1c207540af6f" name="airlineCompany2FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="27fcfec1-00ab-4fa9-b23d-3242cc4f513e" />
+				<flow-ref doc:name="Convert flight format" doc:id="9b8809d3-f0d2-4fe6-b36a-706270ef9b59" name="airlineCompany2FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company 3" doc:id="c3e8d204-4e28-4b8e-83e4-ed374506a5bb" name="airlineCompany3FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="ce1ef0e1-c6a1-49a3-8ad2-808365f39a77" />
+				<flow-ref doc:name="Convert flight format" doc:id="96876d64-bb4d-4ae1-9d12-019a3b97dc83" name="airlineCompany3FlightListConverterFlow" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="67b9dec5-6733-4913-ab9e-5c74c1d1d93c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten([
+    payload[0].payload,
+    payload[1].payload,
+    payload[2].payload
+])
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

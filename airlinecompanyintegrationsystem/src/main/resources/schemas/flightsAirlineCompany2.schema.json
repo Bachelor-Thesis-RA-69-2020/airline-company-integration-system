@@ -1,0 +1,118 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "Code": {
+          "type": "string"
+        },
+        "LuggageRules": {
+          "type": "string"
+        },
+        "Relation": {
+          "type": "object",
+          "properties": {
+            "DepartureAirport": {
+              "type": "object",
+              "properties": {
+                "IATACode": {
+                  "type": "string"
+                },
+                "Name": {
+                  "type": "string"
+                }
+              },
+              "required": ["IATACode", "Name"]
+            },
+            "ArrivalAirport": {
+              "type": "object",
+              "properties": {
+                "IATACode": {
+                  "type": "string"
+                },
+                "Name": {
+                  "type": "string"
+                }
+              },
+              "required": ["IATACode", "Name"]
+            }
+          },
+          "required": ["DepartureAirport", "ArrivalAirport"]
+        },
+        "Schedule": {
+          "type": "object",
+          "properties": {
+            "TakeOffTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "LandingTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "Duration": {
+              "type": "string"
+            }
+          },
+          "required": ["TakeOffTime", "LandingTime", "Duration"]
+        },
+        "Pricing": {
+          "type": "object",
+          "properties": {
+            "EconomyClass": {
+              "type": "object",
+              "properties": {
+                "Price": {
+                  "type": "string"
+                },
+                "Count": {
+                  "type": "string"
+                }
+              },
+              "required": ["Price", "Count"]
+            },
+            "BusinessClass": {
+              "type": "object",
+              "properties": {
+                "Price": {
+                  "type": "string"
+                },
+                "Count": {
+                  "type": "string"
+                }
+              },
+              "required": ["Price", "Count"]
+            },
+            "FirstClass": {
+              "type": "object",
+              "properties": {
+                "Price": {
+                  "type": "string"
+                },
+                "Count": {
+                  "type": "string"
+                }
+              },
+              "required": ["Price", "Count"]
+            },
+            "Discount": {
+              "type": "object",
+              "properties": {
+                "JuniorOffValue": {
+                  "type": "string"
+                },
+                "RegularOffValue": {
+                  "type": "string"
+                }
+              },
+              "required": ["JuniorOffValue", "RegularOffValue"]
+            }
+          },
+          "required": ["EconomyClass", "BusinessClass", "FirstClass", "Discount"]
+        }
+      },
+      "required": ["Code", "LuggageRules", "Relation", "Schedule", "Pricing"]
+    }
+  }
+  
