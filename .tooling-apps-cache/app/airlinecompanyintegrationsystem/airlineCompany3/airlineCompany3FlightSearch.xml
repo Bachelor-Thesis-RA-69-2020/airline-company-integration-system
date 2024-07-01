@@ -14,13 +14,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var from = payload.from as String default ""
-var to = payload.to as String default ""
-var fromAirportIATA = lower(payload.fromAirportIATA) as String default ""
-var arrivalAirportIATA = lower(payload.toAirportIATA) as String default ""
-var flightClass = payload.flightClass as String default ""
-var adultPassengerCount = payload.adultPassengerCount as Number default 0
-var childPassengerCount = payload.childPassengerCount as Number default 0
+var from = if (payload.return) payload.payload.returnFrom else payload.payload.from as String default ""
+var to = if (payload.return) payload.payload.returnTo else payload.payload.to as String default ""
+var fromAirportIATA = if (payload.return) lower(payload.payload.toAirportIATA) else lower(payload.payload.fromAirportIATA) as String default ""
+var arrivalAirportIATA = if (payload.return) lower(payload.payload.fromAirportIATA) else lower(payload.payload.toAirportIATA) as String default ""
+var flightClass = payload.payload.flightClass as String default ""
+var adultPassengerCount = payload.payload.adultPassengerCount as Number default 0
+var childPassengerCount = payload.payload.childPassengerCount as Number default 0
 var passengerCount = (adultPassengerCount + childPassengerCount) as String
 
 ---

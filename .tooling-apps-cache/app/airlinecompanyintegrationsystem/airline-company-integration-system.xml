@@ -125,6 +125,6 @@ output application/json
     </flow>
     <flow name="get:\flights:airline-company-integration-system-config">
         <logger level="INFO" message="get:\flights:airline-company-integration-system-config" />
-		<flow-ref doc:name="Handle flight search" doc:id="fda2a46f-a612-4fda-bd62-7e675efb4ee3" name="flightSearchHandlerFlow"/>
+        <flow-ref doc:name="Handle flight search" doc:id="fda2a46f-a612-4fda-bd62-7e675efb4ee3" name="flightSearchHandlerFlow" />
     </flow>
 </mule>

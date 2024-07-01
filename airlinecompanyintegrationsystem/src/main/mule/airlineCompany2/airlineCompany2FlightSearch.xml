@@ -22,25 +22,27 @@ soapenv#Envelope: {
     soapenv#Header: {},
     soapenv#Body: {
         loc#SearchFlightsRequest: {
-            loc#From: payload.from,
-            loc#To: payload.to,
-            loc#DepartureAirportIATA: upper(payload.fromAirportIATA),
-            loc#ArrivalAirportIATA: upper(payload.toAirportIATA),
-            loc#FlightClass: payload.flightClass,
-            loc#PassengerCount: (payload.adultPassengerCount as Number) + (payload.childPassengerCount as Number)
+            loc#From: if (payload.return) payload.payload.returnFrom else payload.payload.from,
+            loc#To: if (payload.return) payload.payload.returnTo else payload.payload.to,
+            loc#DepartureAirportIATA: if (payload.return) upper(payload.payload.toAirportIATA) else upper(payload.payload.fromAirportIATA),
+            loc#ArrivalAirportIATA: if (payload.return) upper(payload.payload.fromAirportIATA) else upper(payload.payload.toAirportIATA),
+            loc#FlightClass: payload.payload.flightClass,
+            loc#PassengerCount: (payload.payload.adultPassengerCount as Number) + (payload.payload.childPassengerCount as Number)
         }
     }
 }
+
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<http:request method="POST" doc:name="Get flights" doc:id="797c86e7-5bac-4986-9f5f-75bbbe29f23b" config-ref="HTTP_Request_config_SOAP" path="/ws"/>
 		<ee:transform doc:name="To JSON" doc:id="944457f9-4930-4430-97fd-7031f2fb2a29" >
 			<ee:message >
-				<ee:set-payload ><![CDATA[ %dw 2.0
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload.Envelope.Body.SearchFlightsResponse.Flights.*Flight as Array]]></ee:set-payload>
+if (isEmpty(payload.Envelope.Body.SearchFlightsResponse.Flights.Flight)) []
+else payload.Envelope.Body.SearchFlightsResponse.Flights.*Flight as Array]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>

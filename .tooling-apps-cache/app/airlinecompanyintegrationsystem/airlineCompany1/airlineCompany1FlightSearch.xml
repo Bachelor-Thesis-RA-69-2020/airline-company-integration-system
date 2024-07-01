@@ -16,16 +16,28 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 output application/json
 ---
 {
-    from: payload.from,
-    to: payload.to,
-    origin:  upper(payload.fromAirportIATA),
-    destination: upper(payload.toAirportIATA),
-    flightClass: payload.flightClass,
-    passengerCount: (payload.adultPassengerCount as Number) + (payload.childPassengerCount as Number)
-}]]></ee:set-payload>
+    from: if (payload.return) payload.payload.returnFrom else payload.payload.from,
+    to: if (payload.return) payload.payload.returnTo else payload.payload.to,
+    origin: if (payload.return) upper(payload.payload.toAirportIATA) else upper(payload.payload.fromAirportIATA),
+    destination: if (payload.return) upper(payload.payload.fromAirportIATA) else upper(payload.payload.toAirportIATA),
+    flightClass: payload.payload.flightClass,
+    passengerCount: (payload.payload.adultPassengerCount as Number) + (payload.payload.childPassengerCount as Number)
+}
+]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<http:request method="GET" doc:name="Get flights" doc:id="797c86e7-5bac-4986-9f5f-75bbbe29f23b" config-ref="HTTP_Request_config" path="/api/flights/search"/>
-		<logger level="INFO" doc:name="Logger" doc:id="4e4297ee-34d1-476f-a501-68c32b564cd6" message="#[payload]"/>
+		<http:request method="GET" doc:name="Get flights" doc:id="797c86e7-5bac-4986-9f5f-75bbbe29f23b" config-ref="HTTP_Request_config" path="/api/flights/search" sendCorrelationId="NEVER">
+			<http:body ><![CDATA[#[{}]]]></http:body>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	from : payload.from,
+	to : payload.to,
+	origin : payload.origin,
+	destination : payload.destination,
+	flightClass : payload.flightClass,
+	passengerCount : payload.passengerCount,
+}]]]></http:query-params>
+		</http:request>
 	</flow>
 </mule>
