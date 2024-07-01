@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="airportApiConverterFlow" doc:id="456aa221-d6cf-4f2e-8010-88cdf2e1502b" >
+		<ee:transform doc:name="Transform Message" doc:id="2376e5c4-053e-4d78-bdd9-041cb2defff0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	elevation: payload01.Elevation as Number,
+	continent: payload01.Continent,
+	country: payload01.Country,
+	Iata: payload01.IATA,
+	latitude: payload01.Latitude as Number,
+	name: payload01.Name,
+	municipality: payload01.Municipality,
+	region: payload01.Region,
+	longitude: payload01.Longitude as Number
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

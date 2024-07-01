@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_config4" doc:name="HTTP Request configuration">
+        <http:request-connection host="localhost" port="8084" />
+    </http:request-config>
+	
+	<flow name="airportHandlerFlow" doc:id="3e502773-defe-44b0-8ce2-89887daf8c65" >
+		<set-payload value="#[message.attributes.queryParams]" doc:name="Set search filter" doc:id="2de4d736-0ebf-42be-851d-6993d947ee0f" />
+		<set-variable value="#[payload]" doc:name="Set serach filter" doc:id="ee76f796-db69-4c0a-a7f4-dff2cadbb523" variableName="searchFilter" />
+		<flow-ref doc:name="Search airports" doc:id="6d157e1e-3e56-4353-8428-af31f53bcc22" name="airportApiSearchFlow"/>
+		<flow-ref doc:name="Convert airport format" doc:id="31151d9e-e1e2-4c9f-a755-aa1ec17422d7" name="airportApiConverterFlow"/>
+	</flow>
+</mule>

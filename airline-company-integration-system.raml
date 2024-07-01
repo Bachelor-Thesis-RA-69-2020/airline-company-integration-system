@@ -27,6 +27,10 @@ baseUri: http://localhost:8080/api
         description: End datetime of the return flight
         type: datetime
         required: true
+      direct:
+        description: Include only direct flights?
+        type: boolean
+        required: true
       fromAirportIATA:
         description: IATA code of the departure airport
         type: string
