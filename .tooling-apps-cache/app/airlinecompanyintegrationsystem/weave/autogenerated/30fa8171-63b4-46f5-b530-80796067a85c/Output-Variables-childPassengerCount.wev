@@ -1,4 +1,0 @@
-%dw 2.0
-
-type auto_30fa8171_63b4_46f5_b530_80796067a85c_Output_Variables_childPassengerCount = Any
-
