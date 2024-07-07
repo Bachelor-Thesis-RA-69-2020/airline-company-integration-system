@@ -1,6 +1,7 @@
 {
   "configs": [
     "airlineCompany3/airlineCompany3FlightConverter.xml",
+    "currencyApi/currencyApiGetter.xml",
     "airline-company-integration-system.xml",
     "airlineCompany2/airlineCompany2FlightConverter.xml",
     "airlineCompany2/airlineCompany2FlightSearch.xml",
@@ -34,6 +35,7 @@
         "airportApiConverter.xml",
         "api/airline-company-integration-system.raml",
         "application-types.xml",
+        "currencyApi/currencyApiGetter.xml",
         "handler/airportHandler.xml",
         "handler/flightSearchHandler.xml",
         "log4j2.xml",

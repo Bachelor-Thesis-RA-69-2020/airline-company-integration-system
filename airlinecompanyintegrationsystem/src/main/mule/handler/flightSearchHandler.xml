@@ -10,8 +10,10 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
     </http:request-config>
 	
 	<flow name="flightSearchHandlerFlow" doc:id="c7dea089-fb8f-4f24-b87d-4ad5f7ff9a6a" >
-		<set-payload value="#[message.attributes.queryParams]" doc:name="Set search filter" doc:id="f98cf1d7-4870-4728-aafc-5f0a57b3d176" />
+		<set-payload value="#[message.attributes.queryParams]" doc:name="Set search filter" doc:id="90ed064e-2e53-46c2-9d6f-8a7d70df98b2" />
 		<set-variable value="#[payload]" doc:name="Set serach filter" doc:id="54dd6376-e968-4802-afd6-8344de4305d9" variableName="searchFilter"/>
+		<flow-ref doc:name="Get currencies" doc:id="2033e55b-1e48-4301-af69-fbb13b1edfc6" name="currencyApiGetterFlow"/>
+		<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	(vars.searchFilter),&#10;	currency: payload.currency&#10;}]" doc:name="Set search filter" doc:id="f98cf1d7-4870-4728-aafc-5f0a57b3d176" />
 		<scatter-gather doc:name="Search flights" doc:id="f0319665-19ae-4d0f-a652-940a1acc1268" >
 			<route >
 				<flow-ref doc:name="Search one way flights" doc:id="fa994be8-e74b-4a71-bbac-123aa3c70dd9" name="oneWayFlightSearchHandlerFlow" />
@@ -63,21 +65,22 @@ output application/json
 		</choice>
 	</flow>
 	<flow name="directOneWayFlightSearchHandlerFlow" doc:id="4240e467-aa92-4193-bc33-1d8f1314ae2d" >
+		<set-variable value="#[payload]" doc:name="Set search filter" doc:id="8361beb0-470f-4dad-9026-5d5043bbd1e8" variableName="searchFilter"/>
 		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: false,&#10;    direct: true,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="5880425a-a197-48e9-bda2-a7bff950fc0f" />
 		<scatter-gather doc:name="Search flights" doc:id="c63a84bb-a4c3-4bc9-8c16-36047caca927" >
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="5aea515d-0444-472f-bb79-7947215b6cce" name="airlineCompany1FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="069cd262-ffaa-4a8b-ba57-3b20f4070310" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="069cd262-ffaa-4a8b-ba57-3b20f4070310" />
 				<flow-ref doc:name="Convert flight format" doc:id="e20f219c-350c-40f5-8719-4b5c456334f0" name="airlineCompany1FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="d96dd63f-c02e-49d7-a9d5-023dfb05c89a" name="airlineCompany2FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="9e88f8b3-c265-429f-80b1-5b8f9aa8c12c" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="9e88f8b3-c265-429f-80b1-5b8f9aa8c12c" />
 				<flow-ref doc:name="Convert flight format" doc:id="d51069a7-fbd3-4cc9-a444-d649908a7396" name="airlineCompany2FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="ad681006-5fb8-491a-987e-72f3e04c1060" name="airlineCompany3FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="8a7c3b3e-4494-4599-9296-7b0e388a0e1f" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="8a7c3b3e-4494-4599-9296-7b0e388a0e1f" />
 				<flow-ref doc:name="Convert flight format" doc:id="629f3a33-63d8-4b7b-b2af-95643c9a2541" name="airlineCompany3FlightListConverterFlow" />
 			</route>
 		</scatter-gather>
@@ -99,21 +102,22 @@ output application/json
 		</ee:transform>
 	</flow>
 	<flow name="directReturnFlightSearchHandlerFlow" doc:id="1a71650e-6fea-47e5-95f1-00d108a9b7fd" >
+		<set-variable value="#[payload]" doc:name="Set search filter1" doc:id="9e5a22ff-9a06-434f-b340-b2d9a9632e15" variableName="searchFilter" />
 		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: true,&#10;    direct: true,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="7d7a0019-d3f7-484d-aad4-cad0578e9e73" />
 		<scatter-gather doc:name="Search flights" doc:id="c03e35b0-041f-4248-8edb-68a15bcc5cb1" >
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="b319d392-c791-41df-8568-11108dfea06b" name="airlineCompany1FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="312243e0-8997-406e-b2b5-827cc5a46bde" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="312243e0-8997-406e-b2b5-827cc5a46bde" />
 				<flow-ref doc:name="Convert flight format" doc:id="d81a29ad-7ae8-4704-8863-5cb54cd38660" name="airlineCompany1FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="b9acb40d-1d29-4fd1-8c89-4274e0a4ca0e" name="airlineCompany2FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="0b9ee024-dfa4-4ab3-8588-d7dd0b6a5615" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="0b9ee024-dfa4-4ab3-8588-d7dd0b6a5615" />
 				<flow-ref doc:name="Convert flight format" doc:id="89b1c357-0ff3-40ea-9a3a-81328884c5be" name="airlineCompany2FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="c3f5a8d9-ba70-4214-a4dc-ff73d6780aa2" name="airlineCompany3FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="e21e8fa8-9a37-44ff-a4b9-603f4c0a45c2" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="e21e8fa8-9a37-44ff-a4b9-603f4c0a45c2" />
 				<flow-ref doc:name="Convert flight format" doc:id="d05c4b86-3c19-424a-a2ea-2b67aa401cd3" name="airlineCompany3FlightListConverterFlow" />
 			</route>
 		</scatter-gather>
@@ -173,7 +177,7 @@ output application/json
 ---
 {
     returnDirectFlights: payload[0].payload.returnDirectFlights,
-    returnIndirectFlights: payload[1].payload
+    returnIndirectFlights: payload[1].payload.returnIndirectFlights
 }
 ]]></ee:set-payload>
 			</ee:message>
@@ -186,17 +190,17 @@ output application/json
 		<scatter-gather doc:name="Search flights" doc:id="9175c0b1-4b31-4042-b961-b60feff1707e" >
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="3d4a4db0-56fb-4293-ac31-7f2072937cd4" name="airlineCompany1FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="9df474db-3921-460c-bda2-7fb8dcadab94" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="9df474db-3921-460c-bda2-7fb8dcadab94" />
 				<flow-ref doc:name="Convert flight format" doc:id="90f38b6e-34ff-4e93-baee-53b6b6c2c115" name="airlineCompany1FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="6d326a4c-e292-4c6c-8de6-19f0e054792f" name="airlineCompany2FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="2897d286-64d2-439c-aef5-b2731294ac92" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="2897d286-64d2-439c-aef5-b2731294ac92" />
 				<flow-ref doc:name="Convert flight format" doc:id="4bc02dc0-f8ee-40ae-867d-5ba69c2d96cc" name="airlineCompany2FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="bbc36043-09e6-4a2f-9d3e-75dd8a18fd53" name="airlineCompany3FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="91fef4cc-712d-41be-8f8b-5abbf5dfddf6" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="91fef4cc-712d-41be-8f8b-5abbf5dfddf6" />
 				<flow-ref doc:name="Convert flight format" doc:id="427b7328-3763-4f92-9783-5d08cd5fbf93" name="airlineCompany3FlightListConverterFlow" />
 			</route>
 		</scatter-gather>
@@ -240,21 +244,21 @@ output application/java
 	</flow>
 	<flow name="indirectReturnFlightPathSearchHandlerFlow" doc:id="72758ed1-1067-47c9-ad32-a96c29a86af8" >
 		<set-variable value="#[payload]" doc:name="Set search filter" doc:id="17d897ea-ff33-43ba-beb0-e071aead57d4" variableName="searchFilter" />
-		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: true,&#10;    direct: false,&#10;    payload: payload&#10;}]" doc:name="Set search filter1" doc:id="eefe1c29-ad11-4de6-b625-bc37e3e1b9d1" />
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: true,&#10;    direct: false,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="eefe1c29-ad11-4de6-b625-bc37e3e1b9d1" />
 		<scatter-gather doc:name="Search flights" doc:id="b3475f7d-8099-40a4-8404-7c06c5ad21a2" >
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="45b93572-bf8c-405e-814d-9e2911a50c89" name="airlineCompany1FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="f317cb0f-0ba7-4e39-8604-7ccc24087289" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="f317cb0f-0ba7-4e39-8604-7ccc24087289" />
 				<flow-ref doc:name="Convert flight format" doc:id="e83f1621-b05a-4480-bcb9-b89bebc7c368" name="airlineCompany1FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="046f8a97-8273-436e-a400-588b24663bbf" name="airlineCompany2FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="02953a19-127f-46f0-8462-1578b829296e" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="02953a19-127f-46f0-8462-1578b829296e" />
 				<flow-ref doc:name="Convert flight format" doc:id="1e71bb3b-54ff-4635-9925-d72f79b0c8c9" name="airlineCompany2FlightListConverterFlow" />
 			</route>
 			<route >
 				<flow-ref doc:name="Search Airline Company " doc:id="6e2d0239-b201-45d7-959b-443bd5db0f6e" name="airlineCompany3FlightSearchFlow" />
-				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload&#10;}]" doc:name="Prepare for conversion" doc:id="392f9d46-532a-4603-a90d-cb2df8604104" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="392f9d46-532a-4603-a90d-cb2df8604104" />
 				<flow-ref doc:name="Convert flight format" doc:id="f2a58adc-e7b0-404b-b3d2-f1298fd0525d" name="airlineCompany3FlightListConverterFlow" />
 			</route>
 		</scatter-gather>
