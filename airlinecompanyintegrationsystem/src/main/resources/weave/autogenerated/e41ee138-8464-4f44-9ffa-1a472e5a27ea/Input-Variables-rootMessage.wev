@@ -1,0 +1,26 @@
+%dw 2.0
+
+type auto_e41ee138_8464_4f44_9ffa_1a472e5a27ea_Input_Variables_rootMessage = {|
+  payload: Any, 
+  attributes: {|
+    clientCertificate?: {|
+      publicKey?: {|  |}, 
+      "type"?: String, 
+      encoded?: Binary
+    |}, 
+    headers: {|  |}, 
+    listenerPath: String, 
+    method: String, 
+    queryParams: {|  |}, 
+    queryString: String, 
+    relativePath: String, 
+    remoteAddress: String, 
+    requestPath: String, 
+    requestUri: String, 
+    scheme: String, 
+    uriParams: {|  |}, 
+    version: String, 
+    localAddress: String
+  |}
+|} {"typeId": "org.mule.runtime.api.message.Message"}
+

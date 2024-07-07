@@ -64,6 +64,55 @@ baseUri: http://localhost:8080/api
       400:
         description: Bad request
 
+  /booking:
+    post:
+      description: Book flights based on the provided details
+      body:
+        application/json:
+          type: object
+          properties:
+            flightNumbers:
+              type: array
+              items: string
+              description: List of flight numbers
+              required: true
+            flightClass:
+              type: string
+              description: Class of the flight (e.g., Economy, Business, First)
+              required: true
+              enum: [Economy, Business, First]
+            email:
+              type: string
+              description: Email address for booking confirmation
+              required: true
+            passengers:
+              type: array
+              description: List of passengers
+              items:
+                type: object
+                properties:
+                  firstName:
+                    type: string
+                    description: First name of the passenger
+                    required: true
+                  lastName:
+                    type: string
+                    description: Last name of the passenger
+                    required: true
+                  birthDate:
+                    type: datetime
+                    description: Birth date of the passenger
+                    required: true
+                  passportNumber:
+                    type: string
+                    description: Passport number of the passenger
+                    required: true
+      responses:
+        200:
+          description: Successful booking response
+        400:
+          description: Bad request
+
 /airports:
   get:
     description: Get a list of airports, optionally filtered by a search term

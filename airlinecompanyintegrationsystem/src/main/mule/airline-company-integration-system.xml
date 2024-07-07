@@ -131,4 +131,8 @@ output application/json
         <logger level="INFO" message="get:\airports:airline-company-integration-system-config" />
         <flow-ref doc:name="Handle airport search" doc:id="8f3337eb-cb4e-4e3c-93eb-c56cdc4303c0" name="airportHandlerFlow" />
     </flow>
+    <flow name="post:\flights\booking:application\json:airline-company-integration-system-config">
+        <logger level="INFO" message="post:\flights\booking:application\json:airline-company-integration-system-config" />
+		<flow-ref doc:name="Book flights" doc:id="db473c4b-77c9-486e-8958-891298bc25d1" name="flightBookingHandlerFlow"/>
+    </flow>
 </mule>
