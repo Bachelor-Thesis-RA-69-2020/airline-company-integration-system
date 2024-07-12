@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:request-config name="HTTP_Request_SearchFlights3" doc:name="HTTP Request configuration">
+        <http:request-connection host="localhost" port="8083" />
+    </http:request-config>
+	
+	<flow name="airlineCompany3FlightSearchFlow" doc:id="94366282-178a-40c1-9462-c9c6d708824c" >
+		<ee:transform doc:name="Set search body" doc:id="372d94f2-ee4f-4d58-bdd7-a6c2498fc01a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var from = if (payload.return) payload.payload.returnFrom else payload.payload.from as String default ""
+var to = if (payload.return) payload.payload.returnTo else payload.payload.to as String default ""
+var fromAirportIATA = if(payload.direct) if (payload.return) lower(payload.payload.toAirportIATA) else lower(payload.payload.fromAirportIATA) as String default "" else ""
+var arrivalAirportIATA = if(payload.direct) if (payload.return) lower(payload.payload.fromAirportIATA) else lower(payload.payload.toAirportIATA) as String default "" else ""
+var flightClass = payload.payload.flightClass as String default ""
+var adultPassengerCount = payload.payload.adultPassengerCount as Number default 0
+var childPassengerCount = payload.payload.childPassengerCount as Number default 0
+var passengerCount = (adultPassengerCount + childPassengerCount) as String
+
+---
+{
+  query: "query GetFlights {
+    GetFlights(
+      filter: {
+        from: \"" ++ from ++ "\",
+        to: \"" ++ to ++ "\",
+        startingPointIata: \"" ++ lower(fromAirportIATA) ++ "\",
+        endingPointIata: \"" ++ lower(arrivalAirportIATA) ++ "\",
+        flightClass: \"" ++ flightClass ++ "\",
+        passengerCount: " ++ passengerCount ++ "
+      }
+    ) {
+      flightInformation {
+        serialNumber
+        scheduledDeparture
+        scheduledArrival
+        travelTime
+        baggageGuidelines
+        startingPointIata
+        endingPointIata
+        startingPointName
+        endingPointName
+      }
+      flightPrice {
+        economyCount
+        economyPrice
+        businessCount
+        businessPrice
+        firstCount
+        firstPrice
+        kidsDiscountPercentage
+        discountPercentage
+      }
+    }
+  }"
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Get flights" doc:id="797c86e7-5bac-4986-9f5f-75bbbe29f23b" config-ref="HTTP_Request_SearchFlights3" path="/graphql"/>
+		<ee:transform doc:name="Extract flights" doc:id="57112708-0c3e-4b27-9727-246c4aeac3b4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[ %dw 2.0
+output application/json
+---
+payload.data.GetFlights as Array]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="airlineCompany1FlightListConverterFlow" doc:id="a348a93c-dfa2-4505-ae0b-bd245c7caeae" >
+		<set-variable value="#[payload.flightClass]" doc:name="Set flight class" doc:id="0c524fbc-539e-4c69-8c1a-07d3f9b92a71" variableName="flightClass"/>
+		<set-variable value="#[payload.adultPassengerCount as Number]" doc:name="Set adult passenger count" doc:id="407c0ab1-536f-412b-b19e-7bf8acf2b409" variableName="adultPassengerCount"/>
+		<set-variable value="#[payload.childPassengerCount as Number]" doc:name="Set child passenger count" doc:id="e61414b1-62e1-4e3f-926e-343af95753c4" variableName="childPassengerCount"/>
+		<set-variable value="#[payload.currencyFactor]" doc:name="Set currency conversion factor" doc:id="6e4b9695-149f-4549-9845-a3db03a219b2" variableName="currencyFactor"/>
+		<set-payload value="#[payload.flights]" doc:name="Prepare flights" doc:id="c8cd8233-7b82-43c5-9ceb-c4c5c8344d8e" />
+		<ee:transform doc:name="Convert flights" doc:id="aeb5a672-3607-45fd-8d65-9eea41240746" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+import * from dw::core::Dates
+output application/json
+---
+payload map (flightDetail) -> {
+    flightNumber: flightDetail.flightNumber,
+    fromAirportName: substring(flightDetail.origin, 6, sizeOf(flightDetail.origin)),
+    fromAirportIata: substring(flightDetail.origin, 0, 3),
+    toAirportName: substring(flightDetail.destination, 5, sizeOf(flightDetail.destination)),
+    toAirportIata: substring(flightDetail.destination, 0, 3),
+    departureTimestamp: flightDetail.departureDatetime,
+    arrivalTimestamp: flightDetail.arrivalDatetime,
+    duration: flightDetail.durationMinutes,
+    baggageRules: flightDetail.baggageAllowance,
+    price: vars.currencyFactor * (
+        (vars.adultPassengerCount * (
+            if (vars.flightClass == "Economy") flightDetail.economyPrice * (1 - flightDetail.discount/100)
+            else if (vars.flightClass == "Business") flightDetail.businessPrice * (1 - flightDetail.discount/100)
+            else if (vars.flightClass == "First") flightDetail.firstPrice * (1 - flightDetail.discount/100)
+            else 0
+        )) +
+        (vars.childPassengerCount * (
+            if (vars.flightClass == "Economy") flightDetail.economyPrice * (1 - flightDetail.discount/100) * (1 - flightDetail.childrenDiscount/100)
+            else if (vars.flightClass == "Business") flightDetail.businessPrice * (1 - flightDetail.discount/100) * (1 - flightDetail.childrenDiscount/100)
+            else if (vars.flightClass == "First") flightDetail.firstPrice * (1 - flightDetail.discount/100) * (1 - flightDetail.childrenDiscount/100)
+            else 0
+        ))
+    )
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

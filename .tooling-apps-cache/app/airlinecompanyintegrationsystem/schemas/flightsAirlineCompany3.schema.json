@@ -1,0 +1,59 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "flightInformation": {
+          "type": "object",
+          "properties": {
+            "serialNumber": { "type": "string" },
+            "scheduledDeparture": { "type": "string", "format": "date-time" },
+            "scheduledArrival": { "type": "string", "format": "date-time" },
+            "travelTime": { "type": "integer" },
+            "baggageGuidelines": { "type": "string" },
+            "startingPointIata": { "type": "string" },
+            "endingPointIata": { "type": "string" },
+            "startingPointName": { "type": "string" },
+            "endingPointName": { "type": "string" }
+          },
+          "required": [
+            "serialNumber",
+            "scheduledDeparture",
+            "scheduledArrival",
+            "travelTime",
+            "baggageGuidelines",
+            "startingPointIata",
+            "endingPointIata",
+            "startingPointName",
+            "endingPointName"
+          ]
+        },
+        "flightPrice": {
+          "type": "object",
+          "properties": {
+            "economyCount": { "type": "integer" },
+            "economyPrice": { "type": "number" },
+            "businessCount": { "type": "integer" },
+            "businessPrice": { "type": "number" },
+            "firstCount": { "type": "integer" },
+            "firstPrice": { "type": "number" },
+            "kidsDiscountPercentage": { "type": "number" },
+            "discountPercentage": { "type": "number" }
+          },
+          "required": [
+            "economyCount",
+            "economyPrice",
+            "businessCount",
+            "businessPrice",
+            "firstCount",
+            "firstPrice",
+            "kidsDiscountPercentage",
+            "discountPercentage"
+          ]
+        }
+      },
+      "required": ["flightInformation", "flightPrice"]
+    }
+  }
+  

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:request-config name="HTTP_Request_SearchFlights1" doc:name="HTTP Request configuration">
+        <http:request-connection host="localhost" port="8081" />
+    </http:request-config>
+	
+	<flow name="airlineCompany1FlightSearchFlow" doc:id="94366282-178a-40c1-9462-c9c6d708824c" >
+		<ee:transform doc:name="Set search body" doc:id="372d94f2-ee4f-4d58-bdd7-a6c2498fc01a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	direct: payload.direct,
+    from: if (payload.return) payload.payload.returnFrom else payload.payload.from,
+    to: if (payload.return) payload.payload.returnTo else payload.payload.to,
+    origin: if (payload.return) upper(payload.payload.toAirportIATA) else upper(payload.payload.fromAirportIATA),
+    destination: if (payload.return) upper(payload.payload.fromAirportIATA) else upper(payload.payload.toAirportIATA),
+    flightClass: payload.payload.flightClass,
+    passengerCount: (payload.payload.adultPassengerCount as Number) + (payload.payload.childPassengerCount as Number)
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Get flights" doc:id="797c86e7-5bac-4986-9f5f-75bbbe29f23b" config-ref="HTTP_Request_SearchFlights1" path="/api/flights/search" sendCorrelationId="NEVER">
+			<http:body ><![CDATA[#[{}]]]></http:body>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	from : payload.from,
+	to : payload.to,
+	origin : if (payload.direct) payload.origin else null,
+	destination : if (payload.direct) payload.destination else null,
+	flightClass : payload.flightClass,
+	passengerCount : payload.passengerCount,
+} filterObject ((value, key) -> value != null)]]]></http:query-params>
+		</http:request>
+	</flow>
+</mule>

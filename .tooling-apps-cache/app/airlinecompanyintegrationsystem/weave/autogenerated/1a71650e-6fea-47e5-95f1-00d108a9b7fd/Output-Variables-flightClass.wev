@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_1a71650e_6fea_47e5_95f1_00d108a9b7fd_Output_Variables_flightClass = Any
+

@@ -1,0 +1,31 @@
+%dw 2.0
+
+type auto_eda9f898_ae46_4af1_b26e_aa3409b8ef5b_Input_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {|
+    from: String, 
+    to: String, 
+    fromAirportIATA: String, 
+    toAirportIATA: String, 
+    flightClass: "Economy" | "First" | "Business", 
+    adultPassengerCount: Number, 
+    childPassengerCount?: Number
+  |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {|  |}, 
+  version: String, 
+  localAddress: String
+|}
+

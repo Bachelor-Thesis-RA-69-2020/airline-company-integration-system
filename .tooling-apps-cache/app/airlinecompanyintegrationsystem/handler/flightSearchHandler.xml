@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_config_lol" doc:name="HTTP Request configuration">
+        <http:request-connection host="localhost" port="8085" />
+    </http:request-config>
+	
+	<flow name="flightSearchHandlerFlow" doc:id="c7dea089-fb8f-4f24-b87d-4ad5f7ff9a6a" >
+		<set-payload value="#[message.attributes.queryParams]" doc:name="Set search filter" doc:id="90ed064e-2e53-46c2-9d6f-8a7d70df98b2" />
+		<set-variable value="#[payload]" doc:name="Set serach filter" doc:id="54dd6376-e968-4802-afd6-8344de4305d9" variableName="searchFilter"/>
+		<flow-ref doc:name="Get currencies" doc:id="2033e55b-1e48-4301-af69-fbb13b1edfc6" name="currencyApiGetterFlow"/>
+		<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	(vars.searchFilter),&#10;	currency: payload.currency&#10;}]" doc:name="Set search filter" doc:id="f98cf1d7-4870-4728-aafc-5f0a57b3d176" />
+		<scatter-gather doc:name="Search flights" doc:id="f0319665-19ae-4d0f-a652-940a1acc1268" >
+			<route >
+				<flow-ref doc:name="Search one way flights" doc:id="fa994be8-e74b-4a71-bbac-123aa3c70dd9" name="oneWayFlightSearchHandlerFlow" />
+			</route>
+			<route >
+				<choice doc:name="Is return flight" doc:id="d9046931-8a75-4907-8924-49a0f71617f7">
+			<when expression="#[vars.searchFilter.return]">
+				<flow-ref doc:name="Search return flights" doc:id="fd73fa5f-7433-4f72-a6d2-3f2247dde7f5" name="returnFlightSearchHandlerFlow" />
+			</when>
+					<otherwise>
+						<set-payload value="#[[]]" doc:name="Empty" doc:id="c523b991-ac0b-42ed-a092-c720d229e594" />
+			</otherwise>
+		</choice>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="dda017f5-e55f-4470-b74a-22470041cc8e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    directFlights: payload[0].payload.directFlights,
+    indirectFlights: payload[0].payload.indirectFlights,
+    returnDirectFlights: payload[1].payload.returnDirectFlights,
+    returnIndirectFlights: payload[1].payload.returnIndirectFlights
+} filterObject ((value, key) -> value != null)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="oneWayFlightSearchHandlerFlow" doc:id="c56ba445-8bbd-4bdb-bfcc-66286a2eb38b" >
+		<choice doc:name="Is direct flight" doc:id="68182906-6fdb-4b70-aae5-72afbc4af858" >
+			<when expression="#[payload.direct]">
+				<flow-ref doc:name="Search direct, one way flights" doc:id="647043d1-576a-478a-889c-366b8c881d07" name="directOneWayFlightSearchHandlerFlow"/>
+			</when>
+			<otherwise>
+				<flow-ref doc:name="Search indirect, one way flights" doc:id="16aeb704-cca3-4146-9e07-bbe36ad20ddc" name="indirectOneWayFlightSearchHandlerFlow"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="returnFlightSearchHandlerFlow" doc:id="eda9f898-ae46-4af1-b26e-aa3409b8ef5b" >
+		<choice doc:name="Is direct flight" doc:id="645b4692-67f4-4dc2-96ac-81de18a2dcc9" >
+			<when expression="#[payload.direct]" >
+				<flow-ref doc:name="Search direct, return flights" doc:id="eefe8601-10ec-4a7d-aaa5-b7e0910e4bd6" name="directReturnFlightSearchHandlerFlow" />
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Search indirect, return flights" doc:id="217af327-97bf-4ef5-8492-d1a51d511d4a" name="indirectReturnFlightSearchHandlerFlow" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="directOneWayFlightSearchHandlerFlow" doc:id="4240e467-aa92-4193-bc33-1d8f1314ae2d" >
+		<set-variable value="#[payload]" doc:name="Set search filter" doc:id="8361beb0-470f-4dad-9026-5d5043bbd1e8" variableName="searchFilter"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: false,&#10;    direct: true,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="5880425a-a197-48e9-bda2-a7bff950fc0f" />
+		<scatter-gather doc:name="Search flights" doc:id="c63a84bb-a4c3-4bc9-8c16-36047caca927" >
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="5aea515d-0444-472f-bb79-7947215b6cce" name="airlineCompany1FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="069cd262-ffaa-4a8b-ba57-3b20f4070310" />
+				<flow-ref doc:name="Convert flight format" doc:id="e20f219c-350c-40f5-8719-4b5c456334f0" name="airlineCompany1FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="d96dd63f-c02e-49d7-a9d5-023dfb05c89a" name="airlineCompany2FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="9e88f8b3-c265-429f-80b1-5b8f9aa8c12c" />
+				<flow-ref doc:name="Convert flight format" doc:id="d51069a7-fbd3-4cc9-a444-d649908a7396" name="airlineCompany2FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="ad681006-5fb8-491a-987e-72f3e04c1060" name="airlineCompany3FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="8a7c3b3e-4494-4599-9296-7b0e388a0e1f" />
+				<flow-ref doc:name="Convert flight format" doc:id="629f3a33-63d8-4b7b-b2af-95643c9a2541" name="airlineCompany3FlightListConverterFlow" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="06a29225-aa56-4301-a18c-1986f775b8c9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	directFlights: flatten([
+	    payload[0].payload,
+	    payload[1].payload,
+	    payload[2].payload
+	])
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="directReturnFlightSearchHandlerFlow" doc:id="1a71650e-6fea-47e5-95f1-00d108a9b7fd" >
+		<set-variable value="#[payload]" doc:name="Set search filter1" doc:id="9e5a22ff-9a06-434f-b340-b2d9a9632e15" variableName="searchFilter" />
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: true,&#10;    direct: true,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="7d7a0019-d3f7-484d-aad4-cad0578e9e73" />
+		<scatter-gather doc:name="Search flights" doc:id="c03e35b0-041f-4248-8edb-68a15bcc5cb1" >
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="b319d392-c791-41df-8568-11108dfea06b" name="airlineCompany1FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="312243e0-8997-406e-b2b5-827cc5a46bde" />
+				<flow-ref doc:name="Convert flight format" doc:id="d81a29ad-7ae8-4704-8863-5cb54cd38660" name="airlineCompany1FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="b9acb40d-1d29-4fd1-8c89-4274e0a4ca0e" name="airlineCompany2FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="0b9ee024-dfa4-4ab3-8588-d7dd0b6a5615" />
+				<flow-ref doc:name="Convert flight format" doc:id="89b1c357-0ff3-40ea-9a3a-81328884c5be" name="airlineCompany2FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="c3f5a8d9-ba70-4214-a4dc-ff73d6780aa2" name="airlineCompany3FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="e21e8fa8-9a37-44ff-a4b9-603f4c0a45c2" />
+				<flow-ref doc:name="Convert flight format" doc:id="d05c4b86-3c19-424a-a2ea-2b67aa401cd3" name="airlineCompany3FlightListConverterFlow" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="0248fdc4-fe8c-4583-b643-a4073d4816cf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	returnDirectFlights: flatten([
+	    payload[0].payload,
+	    payload[1].payload,
+	    payload[2].payload
+	])
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="indirectOneWayFlightSearchHandlerFlow" doc:id="54bcc07c-60c8-4419-8d6f-40e3a0846dec" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="7838c021-e2a2-4de4-94ff-a944273b9110" >
+			<route >
+				<flow-ref doc:name="Search direct, one way flights" doc:id="c01d23eb-eb32-42b9-9450-3bf4be12ae09" name="directOneWayFlightSearchHandlerFlow"/>
+			</route>
+			<route >
+				<flow-ref doc:name="Search indirect, one way flights" doc:id="ecd9f5c7-0703-4abb-9c22-6f96bd401d78" name="indirectOneWayFlightPathSearchHandlerFlow"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="52cff456-c203-4c0a-a649-dec240b2ebbf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    directFlights: payload[0].payload.directFlights,
+    indirectFlights: payload[1].payload.indirectFlights
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="bae1e629-5a56-4d3e-a59a-ada590145013" />
+	</flow>
+	<flow name="indirectReturnFlightSearchHandlerFlow" doc:id="30fa8171-63b4-46f5-b530-80796067a85c" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="98f5f2e0-8c17-4f7d-bbfb-44c35ae4255a" >
+			<route >
+				<flow-ref doc:name="Search direct, return flights" doc:id="ee9882bc-9b80-42cd-8519-1e6d6787a6c7" name="directReturnFlightSearchHandlerFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search indirect, return flights" doc:id="6c474b33-2b56-4aac-a3b3-1a928bd74ffc" name="indirectReturnFlightPathSearchHandlerFlow" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="5c793908-aa3a-4136-8db1-4513d5b1b6c0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    returnDirectFlights: payload[0].payload.returnDirectFlights,
+    returnIndirectFlights: payload[1].payload.returnIndirectFlights
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="8170f6fe-5c45-4621-8a66-0ff7530c0b52" />
+	</flow>
+	<flow name="indirectOneWayFlightPathSearchHandlerFlow" doc:id="8b49fdf7-7531-4baf-9786-a7a47cacd786" >
+		<set-variable value="#[payload]" doc:name="Set search filter" doc:id="a7608946-666b-4da8-938b-c9c65034f47c" variableName="searchFilter"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: false,&#10;    direct: false,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="0aefd706-522e-4725-ab8d-a67e99668022" />
+		<scatter-gather doc:name="Search flights" doc:id="9175c0b1-4b31-4042-b961-b60feff1707e" >
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="3d4a4db0-56fb-4293-ac31-7f2072937cd4" name="airlineCompany1FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="9df474db-3921-460c-bda2-7fb8dcadab94" />
+				<flow-ref doc:name="Convert flight format" doc:id="90f38b6e-34ff-4e93-baee-53b6b6c2c115" name="airlineCompany1FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="6d326a4c-e292-4c6c-8de6-19f0e054792f" name="airlineCompany2FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="2897d286-64d2-439c-aef5-b2731294ac92" />
+				<flow-ref doc:name="Convert flight format" doc:id="4bc02dc0-f8ee-40ae-867d-5ba69c2d96cc" name="airlineCompany2FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="bbc36043-09e6-4a2f-9d3e-75dd8a18fd53" name="airlineCompany3FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="91fef4cc-712d-41be-8f8b-5abbf5dfddf6" />
+				<flow-ref doc:name="Convert flight format" doc:id="427b7328-3763-4f92-9783-5d08cd5fbf93" name="airlineCompany3FlightListConverterFlow" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="8504dd90-d812-4b9b-bd46-6ca8b3f439f5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	flights: flatten([
+	    payload[0].payload,
+	    payload[1].payload,
+	    payload[2].payload
+	])
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="460aec96-2f30-473d-9322-ab3290d28ccc" config-ref="HTTP_Request_config_lol" path="/flights">
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  flights: payload.flights,
+  fromIata: upper(vars.searchFilter.fromAirportIATA),
+  toIata: upper(vars.searchFilter.toAirportIATA),
+  date: vars.searchFilter.from
+}]]]></http:body>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="308966b2-8910-4f29-8624-0217e5f16fe1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	indirectFlights: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="indirectReturnFlightPathSearchHandlerFlow" doc:id="72758ed1-1067-47c9-ad32-a96c29a86af8" >
+		<set-variable value="#[payload]" doc:name="Set search filter" doc:id="17d897ea-ff33-43ba-beb0-e071aead57d4" variableName="searchFilter" />
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    return: true,&#10;    direct: false,&#10;    payload: payload&#10;}]" doc:name="Set search filter" doc:id="eefe1c29-ad11-4de6-b625-bc37e3e1b9d1" />
+		<scatter-gather doc:name="Search flights" doc:id="b3475f7d-8099-40a4-8404-7c06c5ad21a2" >
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="45b93572-bf8c-405e-814d-9e2911a50c89" name="airlineCompany1FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.EUR&#10;}]" doc:name="Prepare for conversion" doc:id="f317cb0f-0ba7-4e39-8604-7ccc24087289" />
+				<flow-ref doc:name="Convert flight format" doc:id="e83f1621-b05a-4480-bcb9-b89bebc7c368" name="airlineCompany1FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="046f8a97-8273-436e-a400-588b24663bbf" name="airlineCompany2FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.RSD&#10;}]" doc:name="Prepare for conversion" doc:id="02953a19-127f-46f0-8462-1578b829296e" />
+				<flow-ref doc:name="Convert flight format" doc:id="1e71bb3b-54ff-4635-9925-d72f79b0c8c9" name="airlineCompany2FlightListConverterFlow" />
+			</route>
+			<route >
+				<flow-ref doc:name="Search Airline Company " doc:id="6e2d0239-b201-45d7-959b-443bd5db0f6e" name="airlineCompany3FlightSearchFlow" />
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flightClass: vars.searchFilter.flightClass,&#10;    adultPassengerCount: vars.searchFilter.adultPassengerCount,&#10;    childPassengerCount: vars.searchFilter.childPassengerCount,&#10;    flights: payload,&#10;    currencyFactor: vars.searchFilter.currency.target / vars.searchFilter.currency.USD&#10;}]" doc:name="Prepare for conversion" doc:id="392f9d46-532a-4603-a90d-cb2df8604104" />
+				<flow-ref doc:name="Convert flight format" doc:id="f2a58adc-e7b0-404b-b3d2-f1298fd0525d" name="airlineCompany3FlightListConverterFlow" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Sum results" doc:id="96fe145f-2a0b-454e-860c-c285ba43b137" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	flights: flatten([
+	    payload[0].payload,
+	    payload[1].payload,
+	    payload[2].payload
+	])
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="fb1dbcb3-3955-4f1f-97e5-e41540816a76" config-ref="HTTP_Request_config_lol" path="/flights" >
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  flights: payload.flights,
+  fromIata: upper(vars.searchFilter.toAirportIATA),
+  toIata: upper(vars.searchFilter.fromAirportIATA),
+  date: vars.searchFilter.returnFrom
+}]]]></http:body>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="d83a40b1-04cf-4811-97af-f3ee0c33f794" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	returnIndirectFlights: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
